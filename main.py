@@ -8,19 +8,29 @@ api_key = os.environ.get("API_KEY")
 
 client = google.genai.GenerativeModel(api_key=api_key)
 
-
 def build_claim_extraction_prompt(user_text: str) -> str:
-    """
-    Takes the user's free-text architecture description and wraps it
-    in instructions telling the LLM to output ONLY structured JSON
-    matching a fixed schema (no prose, no explanation).
+    ALLOWED_VALUES = {
+    "compute_model": ["EC2", "LAMBDA", "ECS", "EKS", "UNSPECIFIED"],
+    "trigger": ["API_GATEWAY", "EVENTBRIDGE", "SQS", "S3", "UNSPECIFIED"],
+    "monitoring": ["CLOUDWATCH", "UNSPECIFIED"],
+    "dependencies": ["SQS", "SNS", "S3", "UNSPECIFIED"],
+    "database": ["DYNAMODB", "RDS", "UNSPECIFIED"],
+    }
+    schema_description = "\n".join(
+        f'- "{field}": one of {values}'
+        for field, values in ALLOWED_VALUES.items()
+    )
 
-    TODO: decide the exact schema shape for a "claim" — e.g.
-    {"compute_model": "EC2" | "Lambda" | ..., "uses_serverless": bool, ...}
-    and describe that schema explicitly in the prompt so the LLM
-    has no ambiguity about the output format.
-    """
-    pass
+    prompt = f"""You are extracting structured architecture claims from a user's description.
+            Return ONLY a JSON object with these exact fields. Each field's value must come only 
+            from its allowed list below — never invent a new value.{schema_description}
+            For "trigger", "dependencies", and "monitoring", return a JSON array of matching values 
+            (can be multiple, or ["UNSPECIFIED"] if none apply).    For "compute_model" and "database", 
+            return a single string value.User's architecture description:"{user_text}"
+
+            Return only the JSON object. No explanation, no markdown formatting."""
+
+    return prompt
 
 
 def call_llm(prompt: str) -> str:

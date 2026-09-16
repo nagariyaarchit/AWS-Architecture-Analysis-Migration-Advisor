@@ -9,7 +9,7 @@ client = genai.Client(api_key=os.environ.get("API_KEY"))
 
 def build_claim_extraction_prompt(user_text: str) -> str:
     ALLOWED_VALUES = {
-    "compute_model": ["EC2", "LAMBDA", "ECS", "EKS", "UNSPECIFIED"],
+    "compute_model": ["EC2", "LAMBDA", "UNSPECIFIED"],
     "trigger": ["API_GATEWAY", "EVENTBRIDGE", "SQS", "S3", "UNSPECIFIED"],
     "monitoring": ["CLOUDWATCH", "UNSPECIFIED"],
     "dependencies": ["SQS", "SNS", "S3", "UNSPECIFIED"],

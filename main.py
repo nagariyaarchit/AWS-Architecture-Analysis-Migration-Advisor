@@ -1,12 +1,11 @@
 from dotenv import load_dotenv
 import os
 import json
-import google.genai
+from google import genai
+from google.genai import errors
 
 load_dotenv(".env")
-api_key = os.environ.get("API_KEY")
-
-client = google.genai.GenerativeModel(api_key=api_key)
+client = genai.Client(api_key=os.environ.get("API_KEY"))
 
 def build_claim_extraction_prompt(user_text: str) -> str:
     ALLOWED_VALUES = {
@@ -34,12 +33,29 @@ def build_claim_extraction_prompt(user_text: str) -> str:
 
 
 def call_llm(prompt: str) -> str:
-    """
-    Sends the prompt to the LLM API and returns the raw text response.
-    This part is just plumbing — the API call itself.
-    """
-    pass
+    try:
+        interaction = client.models.generate_content(
+            model="gemini-2.5-flash-lite",
+            contents=prompt,
+        )
+        return interaction.text
 
+    except errors.ClientError as e:
+        if e.code == 429:
+            print("Rate limit hit — you're calling too fast or hit your daily cap.")
+        elif e.code in (401, 403):
+            print("Auth error — check your API key.")
+        else:
+            print(f"Client error {e.code}: {e}")
+        return "{}"
+
+    except errors.ServerError as e:
+        print(f"Google's server had an issue ({e.code}): {e}")
+        return "{}"
+
+    except Exception as e:
+        print(f"Unexpected error: {e}")
+        return "{}"
 
 def parse_llm_response(raw_response: str) -> dict:
     """

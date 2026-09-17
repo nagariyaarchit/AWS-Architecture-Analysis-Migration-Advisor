@@ -44,7 +44,7 @@ def build_claim_extraction_prompt(user_text: str) -> str:
 def call_llm(prompt: str) -> str:
     try:
         interaction = client.models.generate_content(
-            model="gemini-2.5-flash-lite",
+            model="gemini-3.1-flash-lite",
             contents=prompt,
         )
         return interaction.text

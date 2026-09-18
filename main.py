@@ -7,6 +7,21 @@ from google.genai import errors
 load_dotenv(".env")
 client = genai.Client(api_key=os.environ.get("API_KEY"))
 
+def get_user_input() -> str:
+    user_text = input("Enter your architecture description: ")
+    cleaned = user_text.strip()
+    while len(cleaned) == 0 or len(cleaned) > 2000 or len(cleaned) < 10:
+        if len(cleaned) == 0:
+            print("Input cannot be empty. Please provide a description.")
+        elif len(cleaned) > 2000:
+            print("Input exceeds 2000 characters. Please shorten your description.")
+        elif len(cleaned) < 10:
+            print("Input is too short. Please provide a more detailed description.")
+        user_text = input("Enter your architecture description (max 2000 characters): ")
+        cleaned = user_text.strip()
+
+    return cleaned
+
 def build_claim_extraction_prompt(user_text: str) -> str:
     ALLOWED_VALUES = {
     "compute_model": ["EC2", "LAMBDA", "UNSPECIFIED"],
@@ -89,23 +104,19 @@ def extract_claims(user_text: str) -> dict:
     claims = parse_llm_response(raw_response)
     return claims
 
-def get_user_input() -> str:
-    user_text = input("Enter your architecture description: ")
-    cleaned = user_text.strip()
-    while len(cleaned) == 0 or len(cleaned) > 2000 or len(cleaned) < 10:
-        if len(cleaned) == 0:
-            print("Input cannot be empty. Please provide a description.")
-        elif len(cleaned) > 2000:
-            print("Input exceeds 2000 characters. Please shorten your description.")
-        elif len(cleaned) < 10:
-            print("Input is too short. Please provide a more detailed description.")
-        user_text = input("Enter your architecture description (max 2000 characters): ")
-        cleaned = user_text.strip()
-
-    return cleaned
-
+def get_directory_path() -> str:
+    try:
+        directory_path = input("Enter the path to the file containing your architecture description: ")
+        while not os.path.isdir(directory_path):
+            print("Directory not found. Please provide a valid directory path.")
+            directory_path = input("Enter the path to the file containing your architecture description: ")
+        return directory_path
+    except KeyboardInterrupt:
+        print("\nOperation cancelled by user.")
+        exit(1)
 
 if __name__ == "__main__":
     user_text = get_user_input()
     result = extract_claims(user_text)
+    directory_path = get_directory_path()
     print(result)

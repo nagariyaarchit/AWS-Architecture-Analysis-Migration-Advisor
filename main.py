@@ -106,17 +106,29 @@ def extract_claims(user_text: str) -> dict:
 
 def get_directory_path() -> str:
     try:
-        directory_path = input("Enter the path to the file containing your architecture description: ")
+        directory_path = input("Enter the path to the directory containing your architecture description: ")
         while not os.path.isdir(directory_path):
             print("Directory not found. Please provide a valid directory path.")
-            directory_path = input("Enter the path to the file containing your architecture description: ")
+            directory_path = input("Enter the path to the directory containing your architecture description: ")
         return directory_path
     except KeyboardInterrupt:
         print("\nOperation cancelled by user.")
         exit(1)
 
+def access_directory(directory_path: str) -> None:
+    try:
+        for dirpath, dirnames, filenames in os.walk(directory_path):
+            for name in filenames:
+                full_path = os.path.join(dirpath, name)
+                print(full_path)
+    except Exception as e:
+        print(f"Error accessing directory: {e}")
+    except PermissionError:
+        print(f"Permission denied when trying to access directory: {directory_path}")
+    
 if __name__ == "__main__":
     user_text = get_user_input()
     result = extract_claims(user_text)
     directory_path = get_directory_path()
+    access_directory(directory_path)
     print(result)

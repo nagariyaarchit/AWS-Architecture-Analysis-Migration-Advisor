@@ -115,20 +115,35 @@ def get_directory_path() -> str:
         print("\nOperation cancelled by user.")
         exit(1)
 
-def access_directory(directory_path: str) -> None:
+def access_directory(directory_path: str) -> bool:
     try:
+        found = False
         for dirpath, dirnames, filenames in os.walk(directory_path):
-            for name in filenames:
+            for name in dirnames:
                 full_path = os.path.join(dirpath, name)
-                print(full_path)
+                if name == "/bin" or name == "/lib":
+                    found = True
+                    break
+
+            if not found:
+                print("Invalid directory bin and lib folder's not found: Directory Path:", directory_path)
+                print("Please provide a valid directory path with resources.")
+                print("Full Path:", full_path)
+                return False
+
+            
     except Exception as e:
         print(f"Error accessing directory: {e}")
+        return False
     except PermissionError:
         print(f"Permission denied when trying to access directory: {directory_path}")
+        return False
     
 if __name__ == "__main__":
     user_text = get_user_input()
     result = extract_claims(user_text)
     directory_path = get_directory_path()
-    access_directory(directory_path)
+    while (not access_directory(directory_path)):
+        directory_path = get_directory_path()
+
     print(result)
